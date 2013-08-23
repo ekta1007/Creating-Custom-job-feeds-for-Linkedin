@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# Base forked and modified from https://gist.github.com/marcelcaraciolo/1604487
-# To do extend the base case, lemmatization , dispersion plots & concordance in NLTK and other hacks on  base below
-# Stop words not correctly parsing, need to fix that
+# Base forked and modified from https://gist.github.com/AloneRoad/1605037
+# to do extend the base case, lemmatization , dispersion plots & concordance in NLTK and other hacks on  base below
+#stop words not correctly parsing, need to fix that
 
 import re
 import nltk
@@ -13,8 +13,6 @@ import string
 import urllib2
 import urllib
 
-#to extend the list of urls as in job feed example for building the csv
-
 url=["http://www.linkedin.com/jobs?viewJob=&jobId=6836724&trk=rj_jshp", "http://www.linkedin.com/jobs?viewJob=&jobId=6175979&trk=rj_jshp","http://www.linkedin.com/jobs?viewJob=&jobId=6723434&trk=rj_jshp" , "http://www.linkedin.com/jobs?viewJob=&jobId=6052768&trk=rj_jshp"]
 doc_list=[]
 stopwords2=["after","about","jobs", "join","also","across","additional","agreement","area","applied","community","company","companys","cookie","copy","copyright","corporate","corporation","could","create","current","computer","expertise","external","faster","focusedon","half","hired","home","people","new","following","full","fulltime","functions","services","show","sign","similar","skills","solutions","staff","starts","requires","policy","post","presentations","privacy","problems","products"]
@@ -22,12 +20,19 @@ for k in range(0,len(url)):
     html = urllib.urlopen(url[k]).read()
     raw = nltk.clean_html(html)
     index_begin=raw.find("main content starts below")
-    index_end=raw.find("sign in to view similar jobs")
-    raw=raw[index_begin+len("main content starts below"):index_end]
+    if index_begin !=-1 
+	index_begin=index_begin+len("main content starts below")
+    elif index_begin ==-1 :
+	if (index_begin=raw.find("Skip to main content") !=-1):
+	    index_begin=index_begin+len("Skip to main content")
+    index_end=raw.find("Sign in to view similar jobs")
+    if index_end !=-1 and index_begin !=-1:
+        raw=raw[index_begin:index_end]
+    # if we dont find both these contents, then just skip 
     for c in string.punctuation:
         raw= raw.replace(c,"")
     raw=raw.lower()
-    doc_list.append(raw)    
+    doc_list.append(raw)  
 # string.punctuation  '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
 stopwords = nltk.corpus.stopwords.words('english')
@@ -74,16 +79,15 @@ all_tips = []
 # add docs here
 for tip in doc_list:
     tokens = tokenizer.tokenize(tip)
-    
-	tokens = [token.lower() for token in tokens if len(token) > 2 and token not in stopwords]
+    tokens = [token.lower() for token in tokens if len(token) > 2 and token not in stopwords] 
 	
-	bi_tokens = bigrams(tokens)
+    bi_tokens = bigrams(tokens)
     tri_tokens = trigrams(tokens)
 
-    # doing some cosmetics for printing now...
+ 
     bi_tokens = [' '.join(token).lower() for token in bi_tokens]
     tri_tokens = [' '.join(token).lower() for token in tri_tokens]
-  
+     
     final_tokens = []
     final_tokens.extend(tokens)
     final_tokens.extend(bi_tokens)
@@ -109,6 +113,7 @@ for doc in docs:
  
 #Now let's find out the most relevant words by tf-idf.
 words = {}
+m=1
 for doc in docs:
     for token in docs[doc]['tf-idf']:
         if token not in words:
@@ -117,9 +122,11 @@ for doc in docs:
             if docs[doc]['tf-idf'][token] > words[token]:
                 words[token] = docs[doc]['tf-idf'][token]
  
-    print doc
+    print "printing document number ", %(m)
+    #print doc
     for token in docs[doc]['tf-idf']:
         print token, docs[doc]['tf-idf'][token]
+    m=m+1
  
 for item in sorted(words.items(), key=lambda x: x[1], reverse=True):
     print "%f <= %s" % (item[1], item[0])
