@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Base forked and modified from https://gist.github.com/AloneRoad/1605037
+# Base forked and modified from https://gist.github.com/marcelcaraciolo/1604487
 # To do extend the base case, lemmatization , dispersion plots & concordance in NLTK and other hacks on  base below
 # Stop words not correctly parsing, need to fix that
 
