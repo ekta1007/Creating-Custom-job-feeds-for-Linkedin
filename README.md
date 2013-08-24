@@ -2,7 +2,7 @@ Creating-Custom-job-feeds-for-Linkedin
 ======================================
 
 This project has two parts 
-Part 1 : Creating a quick csv file from the job pages from Linkedin using url_open & clean html contructs (for quick-win) and having soem predefined filters, for location, and other advanced filters. 
+Part 1 : Creating a quick csv file from the job pages from Linkedin using url_open & clean html contructs (for quick-win) and having some predefined filters, for location, and other advanced filters. 
 In general all the 'jobs" at linkedin follow one of the below categories -:
 1. The job you're looking for is no longer active
 2  We can't find the job you're looking for
