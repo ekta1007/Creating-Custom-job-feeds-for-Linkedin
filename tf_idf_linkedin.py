@@ -14,6 +14,8 @@ import urllib2, urllib
 # TD-idf small example
 
 doc_list =["ekta just met a candy girl", "ekta will go to school tomorrow", "ekta could but will not", "oh ekta is coming to work"]
+#Base Query
+query="ekta just went to school"
 #for docs in doc_list , build doc_names
 doc_names=[]
 for i in range(0,len(doc_list)):
@@ -38,13 +40,16 @@ def num_docs_containing(word, list_of_docs,docs,doc_names):
     return count
  
  
-def idf(word, list_of_docs,docs):
-    return math.log(len(list_of_docs) /
+def idf(word, list_of_docs,docs,doc_names):
+    if num_docs_containing(word, list_of_docs,docs,doc_names)!=0:
+        return math.log(len(list_of_docs) /
             float(num_docs_containing(word, list_of_docs,docs,doc_names)))
+    else :
+        return 0
  
  
-def tf_idf(word, doc, list_of_docs,docs):
-    return (tf(word, doc,docs) * idf(word, list_of_docs,docs))
+def tf_idf(word, doc, list_of_docs,docs,doc_names):
+    return (tf(word, doc,docs) * idf(word, list_of_docs,docs,doc_names))
 
 docs={}
 i=0
@@ -57,8 +62,8 @@ for doc_no in doc_names:
     for token in docs[doc_no]['tokens']:
         docs[doc_no]['freq'][token]=freq(token, doc_no,docs)
         docs[doc_no]['tf'][token]=tf(token, doc_no,docs)
-        docs[doc_no]['idf'][token]=idf(token, doc_list,docs)
-        docs[doc_no]['tf-idf'][token]=tf_idf(token, doc_no, doc_list,docs)
+        docs[doc_no]['idf'][token]=idf(token, doc_list,docs,doc_names)
+        docs[doc_no]['tf-idf'][token]=tf_idf(token, doc_no, doc_list,docs,doc_names)
 
 #post this the whole docs (dict of dict of 'freq', 'tf', 'idf','tf-idf', 'tokens', of which we will need only tf-idf list, corresponding to the individual tokens in that doc
 print docs
@@ -90,11 +95,61 @@ for token in global_vocab :
         if token in global_vocab and token in docs[doc_no]['tokens']:
             dict_tf_idf[token][doc_no] = docs[doc_no]['tf-idf'][token]
         elif token in global_vocab and token not in docs[doc_no]['tokens']: 
-            dict_tf_idf[token][doc_no] = '0'
+            dict_tf_idf[token][doc_no] = 0
 
 print dict_tf_idf
 
+# Now we need to do two things 1) Find the Sim(query,doc) and find tf-idf for the base against the whole corpus 2) For each doc_name, find the k most significant words
+# TD-IDF of query
 
+query_name="query"
+query_dict={}
+docs_entire={}
+# z is the merged corpus including the query+ docs
+entire_corpus_list=[]
+entire_corpus_list=doc_list
+entire_corpus_list.append(query)
+entire_corpus_names=[]
+entire_corpus_names=doc_names
+entire_corpus_names.append(query_name)
 
+query_dict[query_name] = {'freq': {}, 'tf': {}, 'idf': {},'tf-idf': {}, 'tokens': []}
+tokens = tokenizer.tokenize(query)
+query_dict[query_name]['tokens']=tokens
 
-        
+for token in query_dict[query_name]['tokens']:
+    query_dict[query_name]['freq'][token]=freq(token, query_name,query_dict)
+    query_dict[query_name]['tf'][token]=tf(token, query_name,query_dict)
+    
+docs_entire = dict(docs.items() + query_dict.items())
+for token in query_dict[query_name]['tokens']:
+    query_dict[query_name]['idf'][token]=idf(token, entire_corpus_list,docs_entire,entire_corpus_names)#list_of_docs,docs,doc_names
+    query_dict[query_name]['tf-idf'][token]=tf_idf(token, query_name, entire_corpus_list,docs_entire,entire_corpus_names) 
+
+query_dict_tf_idf={}
+for token in global_vocab:
+    query_dict_tf_idf[token] = {query_name:{}}
+for token in global_vocab :
+    if token in global_vocab and token in query_dict[query_name]['tokens']:
+        query_dict_tf_idf[token][query_name] = query_dict[query_name]['tf-idf'][token]
+    else:
+        #if token in global_vocab and token not in query_dict[query_name]['tokens']: 
+        query_dict_tf_idf[token][query_name]= 0
+print query_dict_tf_idf
+
+# merging both the doc_tf_idf_dicts and dict_tf_idf
+"""sim_tf_idf={}
+sim_tf_idf = dict(dict_tf_idf.items() + query_dict_tf_idf.items()) """
+sim={}
+
+for doc_name in doc_names[0:len(doc_names)-1] :
+    sim[str(doc_name),query_name] = {'tf-idf': 0}
+for doc_name in doc_names[0:len(doc_names)-1] :
+   # sim[str(doc_name)+query_name]=0
+    normalize=0
+    for token in dict_tf_idf.keys():
+        sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*int(query_dict_tf_idf[token][query_name])
+        normalize=dict_tf_idf[token][doc_name]*dict_tf_idf[token][doc_name]+normalize
+    sim[str(doc_name),query_name]['tf-idf']=sim[str(doc_name),query_name]['tf-idf']/math.sqrt(normalize)
+
+# Rank order the sim values across the docs
