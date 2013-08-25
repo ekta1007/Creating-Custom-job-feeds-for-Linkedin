@@ -11,6 +11,7 @@ from itertools import chain
 from nltk import bigrams, trigrams
 import math, string
 import urllib2, urllib
+import csv
 import operator # for sorting the values of a dict
 """x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
 sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))"""
@@ -106,7 +107,7 @@ for token in global_vocab :
 print dict_tf_idf
 list_of_words={}
 # Find what are the top terms by tf-id per doc- ie what terms summarize a doc
-for doc_no in doc_names[0,len(doc_names)-1] :
+for doc_no in doc_names[0:len(doc_names)-1] :
     x=docs[doc_no]['tf-idf']
     sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))
     sorted_x.reverse()
@@ -159,7 +160,6 @@ sim={}
 for doc_name in doc_names[0:len(doc_names)-1] :
     sim[str(doc_name),query_name] = {'tf-idf': 0}
 for doc_name in doc_names[0:len(doc_names)-1] :
-   # sim[str(doc_name)+query_name]=0
     normalize=0
     for token in dict_tf_idf.keys():
         sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*query_dict_tf_idf[token][query_name]
@@ -174,5 +174,40 @@ for items in sim.keys():
     sorted_x.reverse()
 #sorted_x.reverse() has the list of docs sorted by top tf-idf 
     
-#unit test the sim for tf-idf 
+#unit test the sim for tf-idf - write everything to csv file
+f=open("C:\Users\ekta\Desktop\unittest_tf_idf_Linkedin9.csv", "wb")
+mywriter = csv.writer(f,dialect='excel')
+#Note I am re-using m on purpose
+for doc_no in doc_names[0:len(doc_name)]:
+    mywriter.writerow([doc_no])
+    m=docs[doc_no]['tf'].keys()
+    m.insert(0,"keys")
+    mywriter.writerow(m)
+    m=docs[doc_no]['tf'].values()
+    m.insert(0,"tf")
+    mywriter.writerow(m)
+    m=docs[doc_no]['idf'].values()
+    m.insert(0,"idf")
+    mywriter.writerow(m)
+    m=docs[doc_no]['tf-idf'].values()
+    m.insert(0,"tf-idf")
+    mywriter.writerow(m)
+    mywriter.writerow([""])
+mywriter.writerow([query_name])
+m=query_dict['query']['tf'].keys()
+m.insert(0,"keys")
+mywriter.writerow(m)
+m=query_dict['query']['tf'].values()
+m.insert(0,"tf")
+mywriter.writerow(m)
+m=query_dict['query']['idf'].values()
+m.insert(0,"idf")
+mywriter.writerow(m)
+m=query_dict['query']['tf-idf'].values()
+m.insert(0,"tf-idf")
+mywriter.writerow(m)
+mywriter.writerow([""])
+f.close()
+
+
 
