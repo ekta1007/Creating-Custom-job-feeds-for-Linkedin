@@ -11,11 +11,17 @@ from itertools import chain
 from nltk import bigrams, trigrams
 import math, string
 import urllib2, urllib
+import operator # for sorting the values of a dict
+"""x = {1: 2, 3: 4, 4:3, 2:1, 0:0}
+sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))"""
+
 # TD-idf small example
 
 doc_list =["ekta just met a candy girl", "ekta will go to school tomorrow", "ekta could but will not", "oh ekta is coming to work"]
 #Base Query
 query="ekta just went to school"
+top_k=3
+# list_of_words is a dict which has the summary of top_k words in the doc 
 #for docs in doc_list , build doc_names
 doc_names=[]
 for i in range(0,len(doc_list)):
@@ -98,6 +104,16 @@ for token in global_vocab :
             dict_tf_idf[token][doc_no] = 0
 
 print dict_tf_idf
+list_of_words={}
+# Find what are the top terms by tf-id per doc- ie what terms summarize a doc
+for doc_no in doc_names[0,len(doc_names)-1] :
+    x=docs[doc_no]['tf-idf']
+    sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))
+    sorted_x.reverse()
+    sorted_x[0:top_k]
+    list_of_words[doc_no]=[sorted_x[0:top_k][i][0] for i in range(0,top_k)]
+    #sorted_x has the sorted list by tf-ids
+		
 
 # Now we need to do two things 1) Find the Sim(query,doc) and find tf-idf for the base against the whole corpus 2) For each doc_name, find the k most significant words
 # TD-IDF of query
@@ -138,8 +154,6 @@ for token in global_vocab :
 print query_dict_tf_idf
 
 # merging both the doc_tf_idf_dicts and dict_tf_idf
-"""sim_tf_idf={}
-sim_tf_idf = dict(dict_tf_idf.items() + query_dict_tf_idf.items()) """
 sim={}
 
 for doc_name in doc_names[0:len(doc_names)-1] :
@@ -148,8 +162,17 @@ for doc_name in doc_names[0:len(doc_names)-1] :
    # sim[str(doc_name)+query_name]=0
     normalize=0
     for token in dict_tf_idf.keys():
-        sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*int(query_dict_tf_idf[token][query_name])
+        sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*query_dict_tf_idf[token][query_name]
         normalize=dict_tf_idf[token][doc_name]*dict_tf_idf[token][doc_name]+normalize
     sim[str(doc_name),query_name]['tf-idf']=sim[str(doc_name),query_name]['tf-idf']/math.sqrt(normalize)
 
 # Rank order the sim values across the docs
+x={}
+for items in sim.keys():
+    x[items]=sim[items]['tf-idf']
+    sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))
+    sorted_x.reverse()
+#sorted_x.reverse() has the list of docs sorted by top tf-idf 
+    
+#unit test the sim for tf-idf 
+
