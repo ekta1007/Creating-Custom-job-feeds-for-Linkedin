@@ -4,6 +4,12 @@
 # to do extend the base case, lemmatization , dispersion plots & concordance in NLTK and other hacks on  base below
 #stop words not correctly parsing, need to fix that
 
+"""
+usage : sim (dict)  has the relavant tf-idf scores of doc{1,2,3,4} with base query 
+sorted_x simply has the tf-idf scores rank ordered in descending order 
+Using this as the base case - I will write custom job feed in tf_idf_linkedin_Jobfeed.py
+"""
+
 import re , nltk
 from nltk.tokenize import RegexpTokenizer
 #import tokenize
@@ -21,6 +27,7 @@ sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))"""
 doc_list =["ekta just met a candy girl", "ekta will go to school tomorrow", "ekta could but will not", "oh ekta is coming to work"]
 #Base Query
 query="ekta just went to school"
+query_name="query"
 top_k=3
 # list_of_words is a dict which has the summary of top_k words in the doc 
 #for docs in doc_list , build doc_names
@@ -73,7 +80,7 @@ for doc_no in doc_names:
         docs[doc_no]['tf-idf'][token]=tf_idf(token, doc_no, doc_list,docs,doc_names)
 
 #post this the whole docs (dict of dict of 'freq', 'tf', 'idf','tf-idf', 'tokens', of which we will need only tf-idf list, corresponding to the individual tokens in that doc
-print docs
+#print docs
 
 """  
 # To test & understand the base code use the doc_list input.
@@ -104,7 +111,7 @@ for token in global_vocab :
         elif token in global_vocab and token not in docs[doc_no]['tokens']: 
             dict_tf_idf[token][doc_no] = 0
 
-print dict_tf_idf
+#print dict_tf_idf
 list_of_words={}
 # Find what are the top terms by tf-id per doc- ie what terms summarize a doc
 for doc_no in doc_names[0:len(doc_names)-1] :
@@ -119,7 +126,6 @@ for doc_no in doc_names[0:len(doc_names)-1] :
 # Now we need to do two things 1) Find the Sim(query,doc) and find tf-idf for the base against the whole corpus 2) For each doc_name, find the k most significant words
 # TD-IDF of query
 
-query_name="query"
 query_dict={}
 docs_entire={}
 # z is the merged corpus including the query+ docs
@@ -143,6 +149,8 @@ for token in query_dict[query_name]['tokens']:
     query_dict[query_name]['idf'][token]=idf(token, entire_corpus_list,docs_entire,entire_corpus_names)#list_of_docs,docs,doc_names
     query_dict[query_name]['tf-idf'][token]=tf_idf(token, query_name, entire_corpus_list,docs_entire,entire_corpus_names) 
 
+#updating global var for tokens only in base query is not required since tf-idf when doing similarity will be 0 anyways.
+
 query_dict_tf_idf={}
 for token in global_vocab:
     query_dict_tf_idf[token] = {query_name:{}}
@@ -152,7 +160,7 @@ for token in global_vocab :
     else:
         #if token in global_vocab and token not in query_dict[query_name]['tokens']: 
         query_dict_tf_idf[token][query_name]= 0
-print query_dict_tf_idf
+#print query_dict_tf_idf
 
 # merging both the doc_tf_idf_dicts and dict_tf_idf
 sim={}
@@ -160,11 +168,26 @@ sim={}
 for doc_name in doc_names[0:len(doc_names)-1] :
     sim[str(doc_name),query_name] = {'tf-idf': 0}
 for doc_name in doc_names[0:len(doc_names)-1] :
-    normalize=0
+    normalize_query=0
+    normalize_doc=0
     for token in dict_tf_idf.keys():
-        sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*query_dict_tf_idf[token][query_name]
-        normalize=dict_tf_idf[token][doc_name]*dict_tf_idf[token][doc_name]+normalize
-    sim[str(doc_name),query_name]['tf-idf']=sim[str(doc_name),query_name]['tf-idf']/math.sqrt(normalize)
+        if dict_tf_idf[token][doc_name] !=0 and query_dict_tf_idf[token][query_name] !=0 :
+            #print "printing the values of the tf-idf of tokens"
+            #print doc_name, token, dict_tf_idf[token][doc_name] , query_dict_tf_idf[token][query_name]
+            sim[str(doc_name),query_name]['tf-idf']= sim[str(doc_name),query_name]['tf-idf']+dict_tf_idf[token][doc_name]*query_dict_tf_idf[token][query_name]
+            normalize_doc=dict_tf_idf[token][doc_name]*dict_tf_idf[token][doc_name]+normalize_doc
+            normalize_query=query_dict_tf_idf[token][query_name]*query_dict_tf_idf[token][query_name]+normalize_query
+            #print doc_name, token, sim[str(doc_name),query_name]['tf-idf'] ,  normalize_doc, normalize_query
+        else :
+            pass
+    if (math.sqrt(normalize_query)*math.sqrt(normalize_doc)) !=0:
+        sim[str(doc_name),query_name]['tf-idf']=sim[str(doc_name),query_name]['tf-idf']/(math.sqrt(normalize_query)*math.sqrt(normalize_doc))
+        #print sim[str(doc_name),query_name]['tf-idf']
+        #print " "
+    else :
+        sim[str(doc_name),query_name]['tf-idf']=0.0
+        #print sim[str(doc_name),query_name]['tf-idf']
+        #print " "
 
 # Rank order the sim values across the docs
 x={}
@@ -175,7 +198,7 @@ for items in sim.keys():
 #sorted_x.reverse() has the list of docs sorted by top tf-idf 
     
 #unit test the sim for tf-idf - write everything to csv file
-f=open("C:\Users\ekta\Desktop\unittest_tf_idf_Linkedin9.csv", "wb")
+f=open("C:\Users\ekta\Desktop\unittest_tf_idf_Linkedin10.csv", "wb")
 mywriter = csv.writer(f,dialect='excel')
 #Note I am re-using m on purpose
 for doc_no in doc_names[0:len(doc_name)]:
