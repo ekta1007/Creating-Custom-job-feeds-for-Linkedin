@@ -135,18 +135,12 @@ for token in global_vocab :
 
 #print dict_tf_idf
 list_of_words={}
-#print "len of doc_names[0:len(doc_names)] "
-#print doc_names[0:len(doc_names)]
-#print len(doc_names)
 # Find what are the top terms by tf-id per doc- ie what terms summarize a doc
 for doc_no in doc_names[0:len(doc_names)] :
     x=docs[doc_no]['tf-idf']
     sorted_y = sorted(x.iteritems(), key=operator.itemgetter(1))
     sorted_y.reverse()
-#   sorted_x[0:top_k]
     list_of_words[doc_no]=[sorted_y[0:top_k]]
-    #[i][0] for i in range(0,len(doc_names))]#range(0,top_k)]
-    #sorted_x has the sorted list by tf-ids
 #print list_of_words
 		
 
