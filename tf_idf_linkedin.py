@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # freq,word_count , tf, num_docs_containing, idf, tf_idf forked(and modified) from from https://gist.github.com/AloneRoad/1605037
 # to do extend the base case, lemmatization , dispersion plots & concordance in NLTK and other hacks on  base below
@@ -111,16 +110,17 @@ for token in global_vocab :
         elif token in global_vocab and token not in docs[doc_no]['tokens']: 
             dict_tf_idf[token][doc_no] = 0
 
+
 #print dict_tf_idf
 list_of_words={}
 # Find what are the top terms by tf-id per doc- ie what terms summarize a doc
-for doc_no in doc_names[0:len(doc_names)-1] :
+for doc_no in doc_names[0:len(doc_names)] :
     x=docs[doc_no]['tf-idf']
-    sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))
-    sorted_x.reverse()
-    sorted_x[0:top_k]
-    list_of_words[doc_no]=[sorted_x[0:top_k][i][0] for i in range(0,top_k)]
-    #sorted_x has the sorted list by tf-ids
+    sorted_y = sorted(x.iteritems(), key=operator.itemgetter(1))
+    sorted_y.reverse()
+    list_of_words[doc_no]=[sorted_y[0:top_k]]
+#print list_of_words
+#sorted_y has the sorted list by tf-ids
 		
 
 # Now we need to do two things 1) Find the Sim(query,doc) and find tf-idf for the base against the whole corpus 2) For each doc_name, find the k most significant words
