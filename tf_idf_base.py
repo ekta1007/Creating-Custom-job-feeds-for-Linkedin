@@ -23,9 +23,9 @@ sorted_x = sorted(x.iteritems(), key=operator.itemgetter(1))"""
 
 # TD-idf small example
 
-doc_list =["ekta just met a candy girl", "ekta will go to school tomorrow", "ekta could but will not", "oh ekta is coming to work"]
+doc_list =["data mining machine learning python NLP NLTK predictive modelling","Big data relevance machine learning","analytics predictive modelling" , "data munging tatistics predictive modelling NLTK natutal language"]
 #Base Query
-query="ekta just went to school"
+query="search relevance data engineer "
 query_name="query"
 top_k=3
 # list_of_words is a dict which has the summary of top_k words in the doc 
